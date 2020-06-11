@@ -7,6 +7,7 @@ let userSchema = new mongoose.Schema({
         type: String,
         required: 'Full name can not be empty'
     },
+    slug: String,
     email: {
         type: String,
         required: 'Email can not be empty',
@@ -25,7 +26,16 @@ let userSchema = new mongoose.Schema({
     following: [{
         type: String
     }],
-    likedPosts: [{
+    followed:[{
+        type: String
+    }],
+    liked: [{
+        type: String
+    }],
+    saved: [{
+        type: String
+    }],
+    categories: [{
         type: String
     }]
 });

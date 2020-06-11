@@ -7,8 +7,9 @@ const {config} = require('./config/config');
 const {mongoose} = require('./db');
 const {passportConfig} = require('./config/passportConfig');
 
-let userController = require('./controllers/userController');
+let profileController = require('./controllers/profileController');
 let articleController = require('./controllers/articleController');
+let categoryController = require('./controllers/categoryController');
 
 var app = express();
 // save images here
@@ -21,8 +22,9 @@ app.use(passport.initialize());
 
 app.listen(process.env.PORT, () => console.log(`Server started at port : ${process.env.PORT}`));
 
-app.use('/auth', userController);
+app.use('/auth', profileController);
 app.use('/articles', articleController);
+app.use('/categories', categoryController);
 
 // base error handler
 app.use((err, req, res, next) => {
