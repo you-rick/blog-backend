@@ -6,6 +6,7 @@ const {multerUpload} = require('../config/imageUpload');
 const router = express.Router();
 const jwtHelper = require('../config/jwtHelper');
 const {Article} = require('../models/article.model');
+const {User} = require('../models/user.model');
 
 router.get('/', async (req, res) => {
     // destructure page and limit and set default values
@@ -119,6 +120,94 @@ router.delete('/:id', jwtHelper.verifyJwtToken, (req, response) => {
         } else {
             console.log("Damn it! Error in Article DELETE :" + JSON.stringify(err, undefined, 2));
         }
+    });
+});
+
+
+router.put('/:id/like', jwtHelper.verifyJwtToken, (req, res, next) => {
+    if (!ObjectId.isValid(req.params.id)) {
+        return res.status(400).send(`No articles with given id: ${req.params.id}`);
+    }
+
+    Article.update({_id: req.params.id}, {$push: {liked: req._id}}, (err, doc) => {
+        if (err) res.status(400).json(err);
+
+        User.update({_id: req._id}, {$push: {liked: req.params.id}}, (err, doc) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json({
+                    status: true,
+                    message: 'Like success'
+                });
+            }
+        });
+    });
+});
+
+
+router.put('/:id/unlike', jwtHelper.verifyJwtToken, (req, res, next) => {
+    if (!ObjectId.isValid(req.params.id)) {
+        return res.status(400).send(`No articles with given id: ${req.params.id}`);
+    }
+
+    Article.update({_id: req.params.id}, {$pull: {liked: req._id}}, (err, doc) => {
+        if (err) res.status(400).json(err);
+
+        User.update({_id: req._id}, {$pull: {liked: req.params.id}}, (err, doc) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json({
+                    status: true,
+                    message: 'Unlike success'
+                });
+            }
+        });
+    });
+});
+
+
+router.put('/:id/save', jwtHelper.verifyJwtToken, (req, res, next) => {
+    if (!ObjectId.isValid(req.params.id)) {
+        return res.status(400).send(`No articles with given id: ${req.params.id}`);
+    }
+
+    Article.update({_id: req.params.id}, {$push: {saved: req._id}}, (err, doc) => {
+        if (err) res.status(400).json(err);
+
+        User.update({_id: req._id}, {$push: {saved: req.params.id}}, (err, doc) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json({
+                    status: true,
+                    message: 'Save success'
+                });
+            }
+        });
+    });
+});
+
+
+router.put('/:id/unsave', jwtHelper.verifyJwtToken, (req, res, next) => {
+    if (!ObjectId.isValid(req.params.id)) {
+        return res.status(400).send(`No articles with given id: ${req.params.id}`);
+    }
+
+    Article.update({_id: req.params.id}, {$pull: {saved: req._id}}, (err, doc) => {
+        if (err) res.status(400).json(err);
+
+        User.update({_id: req._id}, {$pull: {saved: req.params.id}}, (err, doc) => {
+            if (err) {
+                return res.status(400).json(err);
+            } else {
+                return res.status(200).json({
+                    status: true,
+                    message: 'Unsave success'
+                });
+            }
+        });
     });
 });
 

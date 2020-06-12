@@ -26,7 +26,7 @@ let userSchema = new mongoose.Schema({
     following: [{
         type: String
     }],
-    followed:[{
+    followers:[{
         type: String
     }],
     liked: [{

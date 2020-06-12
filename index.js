@@ -10,6 +10,7 @@ const {passportConfig} = require('./config/passportConfig');
 let profileController = require('./controllers/profileController');
 let articleController = require('./controllers/articleController');
 let categoryController = require('./controllers/categoryController');
+let userController = require('./controllers/userController');
 
 var app = express();
 // save images here
@@ -23,6 +24,7 @@ app.use(passport.initialize());
 app.listen(process.env.PORT, () => console.log(`Server started at port : ${process.env.PORT}`));
 
 app.use('/auth', profileController);
+app.use('/users', userController);
 app.use('/articles', articleController);
 app.use('/categories', categoryController);
 

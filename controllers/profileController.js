@@ -19,7 +19,7 @@ router.post('/register', multerUpload.single('photo'), (req, res, next) => {
         facebook: req.body.facebook,
         categories: req.body.categories,
         following: [],
-        followed: [],
+        followers: [],
         saved: [],
         liked: []
     });
@@ -48,7 +48,7 @@ router.post('/update', multerUpload.single('photo'), (req, res, next) => {
         facebook: req.body.facebook,
         categories: req.body.categories,
         following: [],
-        followed: [],
+        followers: [],
         saved: [],
         liked: []
     });
@@ -98,7 +98,7 @@ router.get('/profile', jwtHelper.verifyJwtToken, (req, res, next) => {
                     'photo',
                     'facebook',
                     'following',
-                    'followed',
+                    'followers',
                     'liked',
                     'saved',
                     'categories'
@@ -109,42 +109,6 @@ router.get('/profile', jwtHelper.verifyJwtToken, (req, res, next) => {
 });
 
 
-router.put('/users/:id/follow', jwtHelper.verifyJwtToken, (req, res, next) => {
-    if (!ObjectId.isValid(req.params.id)) {
-        return res.status(400).send(`No users with given id: ${req.params.id}`);
-    }
-});
-
-
-router.put('/:id', jwtHelper.verifyJwtToken, (req, response) => {
-    if (!ObjectId.isValid(req.params.id)) {
-        return response.status(400).send(`No record with given id: ${req.params.id}`);
-    }
-
-    let article = {
-        title: req.body.title,
-        slug: slugify(req.body.title),
-        image: req.file.path,
-        body: req.body.body,
-        date: req.body.date,
-        editedAt: req.body.editedAt,
-        category: req.body.category,
-        likes: eq.body.likes,
-        author: req._id
-    };
-
-    Article.findByIdAndUpdate(req.params.id,
-        {$set: article},
-        {author: req._id, new: false, useFindAndModify: false},
-        (err, doc) => {
-            if (!err) {
-                response.send(doc);
-            } else {
-                response.json({message: err});
-                console.log("Damn it! Error in Article PUT :" + JSON.stringify(err, undefined, 2));
-            }
-        });
-});
 
 
 module.exports = router;

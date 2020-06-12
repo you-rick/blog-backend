@@ -8,7 +8,12 @@ let ArticleSchema = new mongoose.Schema({
     date: String,
     editedAt: String,
     category: String,
-    likes: Number,
+    liked: [{
+        type: String
+    }],
+    saved: [{
+        type: String
+    }],
     author: String
 });
 
