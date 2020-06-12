@@ -24,16 +24,8 @@ const fileFilter = (req, file, callback) => {
 };
 
 
-module.exports.multerUploadd = multer({
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: {fileSize: 1024 * 1024 * 2}
-
-});
-
-
 // Base64 Image handler
-module.exports.uploadImage = (req, res, next) => {
+const uploadImage = (req, res, next) => {
 
     if (req.body.photo) {
 
@@ -65,3 +57,17 @@ module.exports.uploadImage = (req, res, next) => {
 
     next();
 };
+
+
+const multerUpload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {fileSize: 1024 * 1024 * 2}
+
+});
+
+
+module.exports = {
+    fileImageHandler: multerUpload,
+    base64ImageHandler: uploadImage
+}

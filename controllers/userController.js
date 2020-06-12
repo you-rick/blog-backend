@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 
     try {
         // execute query with page and limit values
-        const posts = await User.find()
+        const users = await User.find()
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .exec();
@@ -23,7 +23,8 @@ router.get('/', async (req, res) => {
 
         // return response with posts, total pages, and current page
         res.json({
-            posts,
+            users: users,
+            status: true,
             totalPages: Math.ceil(count / limit),
             currentPage: page
         });
@@ -49,7 +50,7 @@ router.get('/:id', (req, res) => {
                     'about',
                     'linkedin',
                     'facebook',
-                    'followed',
+                    'followers',
                 ])
             });
         } else {
@@ -104,3 +105,6 @@ router.put('/:id/unfollow', jwtHelper.verifyJwtToken, (req, res, next) => {
         });
     });
 });
+
+
+module.exports = router;

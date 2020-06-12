@@ -18,7 +18,7 @@ app.use('/uploads', express.static('uploads'));
 // added Limit, because base64 image has problems
 app.use(bodyParser.json({limit: '20mb'}));
 //fixing CORS problem
-app.use(cors({origin: 'http://localhost:4200'}));
+app.use(cors({origin: 'http://localhost:3000'}));
 app.use(passport.initialize());
 
 app.listen(process.env.PORT, () => console.log(`Server started at port : ${process.env.PORT}`));

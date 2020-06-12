@@ -1,14 +1,14 @@
 const express = require('express');
 const passport = require('passport');
 const jwtHelper = require('../config/jwtHelper');
-const {multerUpload} = require('../config/imageUpload');
+const {fileImageHandler} = require('../config/imageUpload');
 const _ = require('lodash');
 
 let router = express.Router();
 let {User} = require('../models/user.model');
 
 
-router.post('/register', multerUpload.single('photo'), (req, res, next) => {
+router.post('/register', fileImageHandler.single('photo'), (req, res, next) => {
     let user = new User({
         fullName: req.body.fullName,
         email: req.body.email,
@@ -37,7 +37,7 @@ router.post('/register', multerUpload.single('photo'), (req, res, next) => {
     });
 });
 
-router.post('/update', multerUpload.single('photo'), (req, res, next) => {
+router.put('/update', fileImageHandler.single('photo'), (req, res, next) => {
     let user = new User({
         fullName: req.body.fullName,
         email: req.body.email,
@@ -55,7 +55,22 @@ router.post('/update', multerUpload.single('photo'), (req, res, next) => {
 
     user.save((err, doc) => {
         if (!err) {
-            return res.status(200).json({message: "Successful Registration"});
+            return res.status(200).json({
+                status: true,
+                user: _.pick(user, [
+                    'fullName',
+                    'email',
+                    'about',
+                    'linkedin',
+                    'photo',
+                    'facebook',
+                    'following',
+                    'followers',
+                    'liked',
+                    'saved',
+                    'categories'
+                ])
+            });
         } else {
             if (err.code === 11000) {
                 res.status(422).json({message: 'Duplicate email address found.'});
@@ -107,8 +122,6 @@ router.get('/profile', jwtHelper.verifyJwtToken, (req, res, next) => {
         }
     });
 });
-
-
 
 
 module.exports = router;

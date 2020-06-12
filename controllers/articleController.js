@@ -2,7 +2,7 @@ const express = require('express');
 // Mongo ID validation
 const ObjectId = require('mongoose').Types.ObjectId;
 const slugify = require('slugify');
-const {multerUpload} = require('../config/imageUpload');
+const {fileImageHandler} = require('../config/imageUpload');
 const router = express.Router();
 const jwtHelper = require('../config/jwtHelper');
 const {Article} = require('../models/article.model');
@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
     const {page = 1, limit = 10, } = req.query;
 
     let queryParam = {};
-    if (req.query.author) queryParam = {author: req.query.author, ...queryParam};
-    if (req.query.category) queryParam = {category: req.query.category, ...queryParam};
+    if (req.query.author.length) queryParam = {author: req.query.author, ...queryParam};
+    if (req.query.category.length) queryParam = {category: req.query.category, ...queryParam};
 
     try {
         // execute query with page and limit values
@@ -54,7 +54,7 @@ router.get('/:id', (req, response) => {
 });
 
 
-router.post('/', jwtHelper.verifyJwtToken, multerUpload.single('photo'), (req, response) => {
+router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('photo'), (req, response) => {
     let article = new Article({
         title: req.body.title,
         slug: slugify(req.body.title),
@@ -78,7 +78,7 @@ router.post('/', jwtHelper.verifyJwtToken, multerUpload.single('photo'), (req, r
 });
 
 
-router.put('/:id', jwtHelper.verifyJwtToken, (req, response) => {
+router.put('/:id', jwtHelper.verifyJwtToken, fileImageHandler.single('photo'), (req, response) => {
     if (!ObjectId.isValid(req.params.id)) {
         return response.status(400).send(`No record with given id: ${req.params.id}`);
     }
