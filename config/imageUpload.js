@@ -3,27 +3,6 @@ const multer = require('multer');
 const fs = require('fs');
 const mime = require('mime');
 
-
-const storage = multer.diskStorage({
-    destination: function (req, file, callback) {
-        callback(null, './uploads/');
-    },
-    filename: function (req, file, callback) {
-        callback(null, new Date().toISOString() + file.originalname);
-    }
-});
-
-// Фильтр для обработки входной картинки
-const fileFilter = (req, file, callback) => {
-    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'image/png') {
-        //null - вместо него может быть сообщение об ошибке
-        callback(null, true);
-    } else {
-        callback(new Error("Error in file uploading"), false);
-    }
-};
-
-
 // Base64 Image handler
 const uploadImage = (req, res, next) => {
 
@@ -56,6 +35,26 @@ const uploadImage = (req, res, next) => {
 
 
     next();
+};
+
+const storage = multer.diskStorage({
+    destination: function (req, file, callback) {
+        callback(null, './uploads/');
+    },
+    filename: function (req, file, callback) {
+        callback(null, new Date().toISOString() + file.originalname);
+    }
+});
+
+// Фильтр для обработки входной картинки
+const fileFilter = (req, file, callback) => {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'image/png') {
+        //null - вместо него может быть сообщение об ошибке
+        callback(null, true);
+    } else {
+        req.fileValidationError = 'Wrong mimetype, only JPG and PNG files accepted';
+        return callback(null, false, new Error('Wrong mimetype, only JPG/PNG files accepted'));
+    }
 };
 
 

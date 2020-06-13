@@ -9,35 +9,10 @@ let {User} = require('../models/user.model');
 
 
 router.post('/register', fileImageHandler.single('photo'), (req, res, next) => {
-    let user = new User({
-        fullName: req.body.fullName,
-        email: req.body.email,
-        password: req.body.password,
-        about: req.body.about,
-        photo: req.file.path,
-        linkedin: req.body.linkedin,
-        facebook: req.body.facebook,
-        categories: req.body.categories,
-        following: [],
-        followers: [],
-        saved: [],
-        liked: []
-    });
 
-    user.save((err, doc) => {
-        if (!err) {
-            return res.status(200).json({message: "Successful Registration"});
-        } else {
-            if (err.code === 11000) {
-                res.status(422).json({message: 'Duplicate email address found.'});
-            } else {
-                return next(err);
-            }
-        }
-    });
-});
+    req.fileValidationError && res.send({status: false, message: req.fileValidationError});
+    !req.file && res.send({status: false, message: 'No file received'});
 
-router.put('/update', fileImageHandler.single('photo'), (req, res, next) => {
     let user = new User({
         fullName: req.body.fullName,
         email: req.body.email,
@@ -56,8 +31,51 @@ router.put('/update', fileImageHandler.single('photo'), (req, res, next) => {
     user.save((err, doc) => {
         if (!err) {
             return res.status(200).json({
+                status: true, user: _.pick(doc, [
+                    'fullName',
+                    'email',
+                    'about',
+                    'linkedin',
+                    'photo',
+                    'facebook',
+                    'following',
+                    'followers',
+                    'liked',
+                    'saved',
+                    'categories'
+                ])
+            });
+        } else {
+            if (err.code === 11000) {
+                return res.status(422).json({message: 'Duplicate email address found.'});
+            } else {
+                return res.status(400).json(err);
+            }
+        }
+    });
+});
+
+router.put('/update', fileImageHandler.single('photo'), (req, res, next) => {
+    let user = {
+        fullName: req.body.fullName,
+        email: req.body.email,
+        password: req.body.password,
+        about: req.body.about,
+        photo: req.file.path,
+        linkedin: req.body.linkedin,
+        facebook: req.body.facebook,
+        categories: req.body.categories,
+        following: [],
+        followers: [],
+        saved: [],
+        liked: []
+    };
+
+    user.save((err, doc) => {
+        if (!err) {
+            return res.status(200).json({
                 status: true,
-                user: _.pick(user, [
+                user: _.pick(doc, [
                     'fullName',
                     'email',
                     'about',
@@ -75,7 +93,7 @@ router.put('/update', fileImageHandler.single('photo'), (req, res, next) => {
             if (err.code === 11000) {
                 res.status(422).json({message: 'Duplicate email address found.'});
             } else {
-                return next(err);
+                return res.status(400).json(err);
             }
         }
     });
