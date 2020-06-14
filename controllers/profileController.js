@@ -24,15 +24,12 @@ router.post('/register', fileImageHandler.single('photo'), async (req, res, next
             .jpeg({quality: 100})
             .toFile(path.resolve(req.file.destination, 'resized', image)
             ).then(data => {
-            console.log(data);
             fs.unlinkSync(req.file.path);
         }).catch(err => {
             console.log(err);
         });
 
-
-        photoURL = req.file.path;
-
+        photoURL = `uploads/resized/${image}`;
     }
 
 
