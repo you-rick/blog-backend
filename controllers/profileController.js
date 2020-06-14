@@ -1,5 +1,8 @@
 const express = require('express');
 const passport = require('passport');
+const sharp = require('sharp');
+const path = require('path');
+const fs = require('fs');
 const jwtHelper = require('../config/jwtHelper');
 const {fileImageHandler} = require('../config/imageUpload');
 const _ = require('lodash');
@@ -8,12 +11,30 @@ let router = express.Router();
 let {User} = require('../models/user.model');
 
 
-router.post('/register', fileImageHandler.single('photo'), (req, res, next) => {
+router.post('/register', fileImageHandler.single('photo'), async (req, res, next) => {
     let photoURL = 'static/images/default-avatar.png';
 
     req.fileValidationError && res.send({status: false, message: req.fileValidationError});
-    if (req.file) photoURL = req.file.path;
-    //!req.file && res.send({status: false, message: 'No file received'});
+
+    if (req.file) {
+        const {filename: image} = req.file;
+
+        sharp(req.file.path)
+            .resize(500)
+            .jpeg({quality: 100})
+            .toFile(path.resolve(req.file.destination, 'resized', image)
+            ).then(data => {
+            console.log(data);
+            fs.unlinkSync(req.file.path);
+        }).catch(err => {
+            console.log(err);
+        });
+
+
+        photoURL = req.file.path;
+
+    }
+
 
     let user = new User({
         fullName: req.body.fullName,

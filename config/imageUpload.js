@@ -42,7 +42,7 @@ const storage = multer.diskStorage({
         callback(null, './uploads/');
     },
     filename: function (req, file, callback) {
-        callback(null, new Date().toISOString() + file.originalname);
+        callback(null, "sdfsdfsdf" + file.originalname);
     }
 });
 
@@ -61,7 +61,7 @@ const fileFilter = (req, file, callback) => {
 const multerUpload = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: {fileSize: 1024 * 1024 * 2}
+    limits: {fileSize: 1024 * 1024 * 5}
 
 });
 
