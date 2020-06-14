@@ -34,10 +34,9 @@ router.get('/:id', (req, response) => {
 
 
 router.post('/', (req, response) => {
-
     let category = new Category({
         title: req.body.title,
-        slug: slugify(req.body.title)
+        slug: slugify((req.body.title).toLowerCase())
     });
 
     category.save((err, docs) => {
@@ -45,6 +44,8 @@ router.post('/', (req, response) => {
             response.send(docs);
         } else {
             console.log("Damn it! Error in Categories POST :" + JSON.stringify(err, undefined, 2));
+            return response.status(400).json(err);
+
         }
     });
 });
@@ -64,12 +65,12 @@ router.put('/:id', (req, response) => {  // /:id <- это то, к чему м�
         {$set: category},
         {new: true, useFindAndModify: false},
         (err, doc) => {
-        if (!err) {
-            response.send(doc);
-        } else {
-            console.log("Damn it! Error in Categories PUT :" + JSON.stringify(err, undefined, 2));
-        }
-    });
+            if (!err) {
+                response.send(doc);
+            } else {
+                console.log("Damn it! Error in Categories PUT :" + JSON.stringify(err, undefined, 2));
+            }
+        });
 });
 
 

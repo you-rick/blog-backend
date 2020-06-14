@@ -6,7 +6,7 @@ let CategorySchema = new mongoose.Schema({
     slug: String
 });
 
-let Category = mongoose.model('Category', CategorySchema);
+let Category = mongoose.model('Category', CategorySchema, 'categories');
 
 
 module.exports = {

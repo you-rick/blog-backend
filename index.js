@@ -16,6 +16,7 @@ var app = express();
 // save images here
 app.use('/uploads', express.static('uploads'));
 app.use('/static', express.static('static'));
+app.use(express.json());
 // added Limit, because base64 image has problems
 app.use(bodyParser.json({limit: '20mb'}));
 //fixing CORS problem
