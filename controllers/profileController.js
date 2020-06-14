@@ -9,16 +9,18 @@ let {User} = require('../models/user.model');
 
 
 router.post('/register', fileImageHandler.single('photo'), (req, res, next) => {
+    let photoURL = 'static/images/default-avatar.png';
 
     req.fileValidationError && res.send({status: false, message: req.fileValidationError});
-    !req.file && res.send({status: false, message: 'No file received'});
+    if (req.file) photoURL = req.file.path;
+    //!req.file && res.send({status: false, message: 'No file received'});
 
     let user = new User({
         fullName: req.body.fullName,
         email: req.body.email,
         password: req.body.password,
         about: req.body.about,
-        photo: req.file.path,
+        photo: photoURL,
         linkedin: req.body.linkedin,
         facebook: req.body.facebook,
         categories: req.body.categories,
