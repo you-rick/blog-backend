@@ -50,21 +50,7 @@ router.post('/register', fileImageHandler.single('photo'), async (req, res, next
 
     user.save((err, doc) => {
         if (!err) {
-            return res.status(200).json({
-                status: true, user: _.pick(doc, [
-                    'fullName',
-                    'email',
-                    'about',
-                    'linkedin',
-                    'photo',
-                    'facebook',
-                    'following',
-                    'followers',
-                    'liked',
-                    'saved',
-                    'categories'
-                ])
-            });
+            return res.status(200).json({status: true, message: "successful registration"});
         } else {
             if (err.code === 11000) {
                 return res.status(422).json({message: 'Duplicate email address found.'});

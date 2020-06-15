@@ -3,6 +3,7 @@ const multer = require('multer');
 const fs = require('fs');
 const mime = require('mime');
 
+
 // Base64 Image handler
 const uploadImage = (req, res, next) => {
 
@@ -42,7 +43,9 @@ const storage = multer.diskStorage({
         callback(null, './uploads/');
     },
     filename: function (req, file, callback) {
-        callback(null, new Date().toISOString() + file.originalname);
+        // Random string for image name
+        let randomString = Math.random().toString(36).substr(2, 5);
+        callback(null, new Date().toISOString() + randomString + file.originalname);
     }
 });
 
@@ -60,8 +63,7 @@ const fileFilter = (req, file, callback) => {
 
 const multerUpload = multer({
     storage: storage,
-    fileFilter: fileFilter,
-    limits: {fileSize: 1024 * 1024 * 5}
+    fileFilter: fileFilter
 
 });
 
