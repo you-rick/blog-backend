@@ -7,16 +7,30 @@ const {User} = require('../models/user.model');
 const _ = require('lodash');
 
 router.get('/', async (req, res) => {
+    console.log("here!");
     // destructure page and limit and set default values
     const {page = 1, limit = 10} = req.query;
 
 
     try {
         // execute query with page and limit values
-        const users = await User.find()
+        let users = await User.find()
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .exec();
+
+        users = users.map(usr => {
+            return _.pick(usr, [
+                '_id',
+                'fullName',
+                'photo',
+                'about',
+                'linkedin',
+                'facebook',
+                'followers',
+                'following',
+            ])
+        });
 
         // get total documents in the Posts collection
         const count = await User.countDocuments();
@@ -39,11 +53,13 @@ router.get('/:id', (req, res) => {
         return res.status(400).send(`No record with given id: ${req.params.id}`);
     }
 
+    console.log(req.params);
+
     User.findById(req.params.id, (err, doc) => {
         if (!err) {
             return res.status(200).json({
                 status: true,
-                user: _.pick(user, [
+                user: _.pick(doc, [
                     '_id',
                     'fullName',
                     'photo',
@@ -51,6 +67,7 @@ router.get('/:id', (req, res) => {
                     'linkedin',
                     'facebook',
                     'followers',
+                    'following'
                 ])
             });
         } else {

@@ -134,6 +134,7 @@ router.get('/profile', jwtHelper.verifyJwtToken, (req, res, next) => {
             return res.status(200).json({
                 status: true,
                 user: _.pick(user, [
+                    '_id',
                     'fullName',
                     'email',
                     'about',
