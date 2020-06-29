@@ -13,6 +13,7 @@ let {User} = require('../models/user.model');
 
 router.post('/register', fileImageHandler.single('photo'), async (req, res, next) => {
     let photoURL = 'static/images/default-avatar.png';
+    let registerDate = new Date();
 
     req.fileValidationError && res.send({status: false, message: req.fileValidationError});
 
@@ -45,7 +46,8 @@ router.post('/register', fileImageHandler.single('photo'), async (req, res, next
         following: [],
         followers: [],
         saved: [],
-        liked: []
+        liked: [],
+        date: registerDate.toString()
     });
 
     user.save((err, doc) => {
@@ -53,7 +55,7 @@ router.post('/register', fileImageHandler.single('photo'), async (req, res, next
             return res.status(200).json({status: true, message: "successful registration"});
         } else {
             if (err.code === 11000) {
-                return res.status(422).json({message: 'Duplicate email address found.'});
+                return res.status(422).json({status: false, message: 'Duplicate email address found.'});
             } else {
                 return res.status(400).json(err);
             }
@@ -61,7 +63,7 @@ router.post('/register', fileImageHandler.single('photo'), async (req, res, next
     });
 });
 
-router.put('/update', fileImageHandler.single('photo'), (req, res, next) => {
+router.put('/update', jwtHelper.verifyJwtToken, fileImageHandler.single('photo'), (req, res, next) => {
     let user = {
         fullName: req.body.fullName,
         email: req.body.email,
@@ -92,7 +94,8 @@ router.put('/update', fileImageHandler.single('photo'), (req, res, next) => {
                     'followers',
                     'liked',
                     'saved',
-                    'categories'
+                    'categories',
+                    'date'
                 ])
             });
         } else {
@@ -105,6 +108,7 @@ router.put('/update', fileImageHandler.single('photo'), (req, res, next) => {
     });
 });
 
+
 router.post('/login', (req, res, next) => {
     // call for passport authentication
     passport.authenticate('local', (err, user, info) => {
@@ -112,7 +116,7 @@ router.post('/login', (req, res, next) => {
             return res.status(400).json(err);
         } else if (user) {
 
-            return res.status(200).json({'token': user.generateJwt(user._id)});
+            return res.status(200).json({status: true, 'token': user.generateJwt(user._id)});
         }
         // unknown user or wrong password
         else {
@@ -140,7 +144,8 @@ router.get('/profile', jwtHelper.verifyJwtToken, (req, res, next) => {
                     'followers',
                     'liked',
                     'saved',
-                    'categories'
+                    'categories',
+                    'date'
                 ])
             });
         }

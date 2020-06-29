@@ -2,6 +2,9 @@ const express = require('express');
 // Mongo ID validation
 const ObjectId = require('mongoose').Types.ObjectId;
 const slugify = require('slugify');
+const sharp = require('sharp');
+const path = require('path');
+const fs = require('fs');
 const {fileImageHandler} = require('../config/imageUpload');
 const router = express.Router();
 const jwtHelper = require('../config/jwtHelper');
@@ -10,7 +13,7 @@ const {User} = require('../models/user.model');
 
 router.get('/', async (req, res) => {
     // destructure page and limit and set default values
-    const {page = 1, limit = 10, } = req.query;
+    const {page = 1, limit = 10,} = req.query;
 
     let queryParam = {};
     if (req.query.author.length) queryParam = {author: req.query.author, ...queryParam};
@@ -54,24 +57,47 @@ router.get('/:id', (req, response) => {
 });
 
 
-router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('photo'), (req, response) => {
+router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (req, response) => {
+    let imageURL = '';
+    let postDate = new Date();
+
+    req.fileValidationError && response.send({status: false, message: req.fileValidationError});
+
+    if (req.file) {
+        const {filename: image} = req.file;
+
+        sharp(req.file.path)
+            .resize(1200)
+            .jpeg({quality: 90})
+            .toFile(path.resolve(req.file.destination, 'resized', image)
+            ).then(data => {
+            fs.unlinkSync(req.file.path);
+        }).catch(err => {
+            console.log(err);
+        });
+
+        imageURL = `uploads/resized/${image}`;
+    }
+
+
     let article = new Article({
         title: req.body.title,
         slug: slugify(req.body.title),
-        image: req.file.path,
-        body: req.body.body,
-        date: req.body.date,
+        image: imageURL,
+        description: req.body.description,
+        content: req.body.content,
+        date: postDate.toString(),
         editedAt: req.body.editedAt,
         category: req.body.category,
-        likes: eq.body.likes,
+        likes: req.body.likes,
         author: req._id
     });
 
     article.save((err, docs) => {
         if (!err) {
-            response.send(docs);
+            response.send({status: true, article: docs});
         } else {
-            response.json({message: err});
+            response.json({status: false, message: err});
             console.log("Damn it! Error in Article POST :" + JSON.stringify(err, undefined, 2));
         }
     });
@@ -87,11 +113,11 @@ router.put('/:id', jwtHelper.verifyJwtToken, fileImageHandler.single('photo'), (
         title: req.body.title,
         slug: slugify(req.body.title),
         image: req.file.path,
-        body: req.body.body,
+        content: req.body.content,
         date: req.body.date,
         editedAt: req.body.editedAt,
         category: req.body.category,
-        likes: eq.body.likes,
+        likes: req.body.likes,
         author: req._id
     };
 
@@ -99,13 +125,13 @@ router.put('/:id', jwtHelper.verifyJwtToken, fileImageHandler.single('photo'), (
         {$set: article},
         {author: req._id, new: false, useFindAndModify: false},
         (err, doc) => {
-        if (!err) {
-            response.send(doc);
-        } else {
-            response.json({message: err});
-            console.log("Damn it! Error in Article PUT :" + JSON.stringify(err, undefined, 2));
-        }
-    });
+            if (!err) {
+                response.send(doc);
+            } else {
+                response.json({message: err});
+                console.log("Damn it! Error in Article PUT :" + JSON.stringify(err, undefined, 2));
+            }
+        });
 });
 
 

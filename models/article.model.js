@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 let ArticleSchema = new mongoose.Schema({
     title: String,
     slug: String,
+    description: String,
     image: String,
-    body: String,
+    content: String,
     date: String,
     editedAt: String,
     category: String,
@@ -17,7 +18,7 @@ let ArticleSchema = new mongoose.Schema({
     author: String
 });
 
-let Article = mongoose.model('Article', ArticleSchema);
+let Article = mongoose.model('Article', ArticleSchema, 'articles');
 
 module.exports = {
     Article: Article

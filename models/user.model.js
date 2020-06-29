@@ -37,7 +37,8 @@ let userSchema = new mongoose.Schema({
     }],
     categories: [{
         type: String
-    }]
+    }],
+    date: String
 });
 
 
