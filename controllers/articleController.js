@@ -16,12 +16,12 @@ router.get('/', async (req, res) => {
     const {page = 1, limit = 10,} = req.query;
 
     let queryParam = {};
-    if (req.query.author.length) queryParam = {author: req.query.author, ...queryParam};
-    if (req.query.category.length) queryParam = {category: req.query.category, ...queryParam};
+    if (req.query.author) queryParam = {author: req.query.author, ...queryParam};
+    if (req.query.category) queryParam = {category: req.query.category, ...queryParam};
 
     try {
         // execute query with page and limit values
-        const posts = await Article.find(queryParam)
+        const articles = await Article.find(queryParam)
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .exec();
@@ -31,7 +31,8 @@ router.get('/', async (req, res) => {
 
         // return response with posts, total pages, and current page
         res.json({
-            posts,
+            articles,
+            status: true,
             totalPages: Math.ceil(count / limit),
             currentPage: page
         });
@@ -41,14 +42,13 @@ router.get('/', async (req, res) => {
 });
 
 
-router.get('/:id', (req, response) => {
-    if (!ObjectId.isValid(req.params.id)) {
-        return response.status(400).send(`No record with given id: ${req.params.id}`);
-    }
-
-    Article.findById(req.params.id, (err, doc) => {
+router.get('/:slug', (req, response) => {
+    Article.find({slug: req.params.slug}, (err, doc) => {
         if (!err) {
-            response.send(doc);
+            response.status(200).json({
+                status: true,
+                article: doc
+            });
         } else {
             response.json({message: err});
             console.log("Damn it! Error in Retrieving Article by ID :" + JSON.stringify(err, undefined, 2));
@@ -60,15 +60,15 @@ router.get('/:id', (req, response) => {
 router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (req, response) => {
     let imageURL = '';
     let postDate = new Date();
-
+    let slug = slugify(req.body.title, {lower: true, remove: /[*+~.()'"!:@?<>;=\/]/g});
     req.fileValidationError && response.send({status: false, message: req.fileValidationError});
 
     if (req.file) {
         const {filename: image} = req.file;
 
         sharp(req.file.path)
-            .resize(1200)
-            .jpeg({quality: 90})
+            .resize(960)
+            .jpeg({quality: 100})
             .toFile(path.resolve(req.file.destination, 'resized', image)
             ).then(data => {
             fs.unlinkSync(req.file.path);
@@ -82,12 +82,11 @@ router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (re
 
     let article = new Article({
         title: req.body.title,
-        slug: slugify(req.body.title),
+        slug: slug,
         image: imageURL,
         description: req.body.description,
         content: req.body.content,
         date: postDate.toString(),
-        editedAt: req.body.editedAt,
         category: req.body.category,
         likes: req.body.likes,
         author: req._id
@@ -95,7 +94,7 @@ router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (re
 
     article.save((err, docs) => {
         if (!err) {
-            response.send({status: true, article: docs});
+            response.send({status: true, message: "Article successfully added", article: docs});
         } else {
             response.json({status: false, message: err});
             console.log("Damn it! Error in Article POST :" + JSON.stringify(err, undefined, 2));
@@ -104,29 +103,46 @@ router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (re
 });
 
 
-router.put('/:id', jwtHelper.verifyJwtToken, fileImageHandler.single('photo'), (req, response) => {
-    if (!ObjectId.isValid(req.params.id)) {
-        return response.status(400).send(`No record with given id: ${req.params.id}`);
+router.put('/:slug', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (req, response) => {
+    console.log("HERE!!!");
+    let imageURL = '';
+    let editDate = new Date();
+    let slug = slugify(req.body.title, {lower: true, remove: /[*+~.()'"!:@?<>;=\/]/g});
+    req.fileValidationError && response.send({status: false, message: req.fileValidationError});
+
+    if (req.file) {
+        const {filename: image} = req.file;
+
+        sharp(req.file.path)
+            .resize(960)
+            .jpeg({quality: 100})
+            .toFile(path.resolve(req.file.destination, 'resized', image)
+            ).then(data => {
+            fs.unlinkSync(req.file.path);
+        }).catch(err => {
+            console.log(err);
+        });
+
+        imageURL = `uploads/resized/${image}`;
     }
 
     let article = {
         title: req.body.title,
-        slug: slugify(req.body.title),
-        image: req.file.path,
+        slug: slug,
         content: req.body.content,
-        date: req.body.date,
-        editedAt: req.body.editedAt,
+        editedAt: editDate.toString(),
         category: req.body.category,
-        likes: req.body.likes,
         author: req._id
     };
 
-    Article.findByIdAndUpdate(req.params.id,
-        {$set: article},
-        {author: req._id, new: false, useFindAndModify: false},
-        (err, doc) => {
+    if (imageURL.length) {
+        article.image = imageURL;
+    }
+
+    Article.updateOne({_id: req.body._id, author: req._id}, {$set: article},
+        (err, docs) => {
             if (!err) {
-                response.send(doc);
+                response.send({status: true, message: "Article successfully updated", article: docs});
             } else {
                 response.json({message: err});
                 console.log("Damn it! Error in Article PUT :" + JSON.stringify(err, undefined, 2));

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-let ArticleSchema = new mongoose.Schema({
+let articleSchema = new mongoose.Schema({
     title: String,
     slug: String,
     description: String,
@@ -18,7 +18,16 @@ let ArticleSchema = new mongoose.Schema({
     author: String
 });
 
-let Article = mongoose.model('Article', ArticleSchema, 'articles');
+
+articleSchema.pre('save', function(next) {
+  let id = this._id;
+  this.slug = this.slug + '-' + id;
+  next();
+});
+
+
+
+let Article = mongoose.model('Article', articleSchema, 'articles');
 
 module.exports = {
     Article: Article
