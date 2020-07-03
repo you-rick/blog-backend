@@ -7,7 +7,6 @@ const {User} = require('../models/user.model');
 const _ = require('lodash');
 
 router.get('/', async (req, res) => {
-    console.log("here!");
     // destructure page and limit and set default values
     const {page = 1, limit = 10} = req.query;
 
@@ -52,8 +51,6 @@ router.get('/:id', (req, res) => {
     if (!ObjectId.isValid(req.params.id)) {
         return res.status(400).send(`No record with given id: ${req.params.id}`);
     }
-
-    console.log(req.params);
 
     User.findById(req.params.id, (err, doc) => {
         if (!err) {

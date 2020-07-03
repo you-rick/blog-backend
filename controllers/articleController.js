@@ -104,7 +104,6 @@ router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (re
 
 
 router.put('/:slug', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (req, response) => {
-    console.log("HERE!!!");
     let imageURL = '';
     let editDate = new Date();
     let slug = slugify(req.body.title, {lower: true, remove: /[*+~.()'"!:@?<>;=\/]/g});
