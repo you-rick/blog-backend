@@ -129,6 +129,7 @@ router.put('/:slug', jwtHelper.verifyJwtToken, fileImageHandler.single('image'),
     let article = {
         title: req.body.title,
         slug: slug,
+        description: req.body.description,
         content: req.body.content,
         editedAt: editDate.toString(),
         category: req.body.category,
@@ -171,16 +172,18 @@ router.put('/:id/like', jwtHelper.verifyJwtToken, (req, res, next) => {
         return res.status(400).send(`No articles with given id: ${req.params.id}`);
     }
 
-    Article.update({_id: req.params.id}, {$push: {liked: req._id}}, (err, doc) => {
+    Article.updateOne({_id: req.params.id}, {$push: {liked: req._id}}, (err, articleData) => {
         if (err) res.status(400).json(err);
 
-        User.update({_id: req._id}, {$push: {liked: req.params.id}}, (err, doc) => {
+        User.updateOne({_id: req._id}, {$push: {liked: req.params.id}}, (err, userData) => {
             if (err) {
                 return res.status(400).json(err);
             } else {
                 return res.status(200).json({
                     status: true,
-                    message: 'Like success'
+                    message: 'Article saved in Favorites',
+                    article: articleData,
+                    user: req._id
                 });
             }
         });
@@ -193,16 +196,18 @@ router.put('/:id/unlike', jwtHelper.verifyJwtToken, (req, res, next) => {
         return res.status(400).send(`No articles with given id: ${req.params.id}`);
     }
 
-    Article.update({_id: req.params.id}, {$pull: {liked: req._id}}, (err, doc) => {
+    Article.updateOne({_id: req.params.id}, {$pull: {liked: req._id}}, (err, articleData) => {
         if (err) res.status(400).json(err);
 
-        User.update({_id: req._id}, {$pull: {liked: req.params.id}}, (err, doc) => {
+        User.updateOne({_id: req._id}, {$pull: {liked: req.params.id}}, (err, userData) => {
             if (err) {
                 return res.status(400).json(err);
             } else {
                 return res.status(200).json({
                     status: true,
-                    message: 'Unlike success'
+                    message: 'Article removed from Favorites',
+                    article: articleData,
+                    user: req._id
                 });
             }
         });
@@ -215,16 +220,18 @@ router.put('/:id/save', jwtHelper.verifyJwtToken, (req, res, next) => {
         return res.status(400).send(`No articles with given id: ${req.params.id}`);
     }
 
-    Article.update({_id: req.params.id}, {$push: {saved: req._id}}, (err, doc) => {
+    Article.updateOne({_id: req.params.id}, {$push: {saved: req._id}}, (err, articleData) => {
         if (err) res.status(400).json(err);
 
-        User.update({_id: req._id}, {$push: {saved: req.params.id}}, (err, doc) => {
+        User.updateOne({_id: req._id}, {$push: {saved: req.params.id}}, (err, userData) => {
             if (err) {
                 return res.status(400).json(err);
             } else {
                 return res.status(200).json({
                     status: true,
-                    message: 'Save success'
+                    message: 'Article saved',
+                    article: articleData,
+                    user: req._id
                 });
             }
         });
@@ -237,16 +244,18 @@ router.put('/:id/unsave', jwtHelper.verifyJwtToken, (req, res, next) => {
         return res.status(400).send(`No articles with given id: ${req.params.id}`);
     }
 
-    Article.update({_id: req.params.id}, {$pull: {saved: req._id}}, (err, doc) => {
+    Article.updateOne({_id: req.params.id}, {$pull: {saved: req._id}}, (err, articleData) => {
         if (err) res.status(400).json(err);
 
-        User.update({_id: req._id}, {$pull: {saved: req.params.id}}, (err, doc) => {
+        User.updateOne({_id: req._id}, {$pull: {saved: req.params.id}}, (err, userData) => {
             if (err) {
                 return res.status(400).json(err);
             } else {
                 return res.status(200).json({
                     status: true,
-                    message: 'Unsave success'
+                    message: 'Article removed from saved',
+                    article: articleData,
+                    user: req._id
                 });
             }
         });

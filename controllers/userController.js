@@ -83,16 +83,17 @@ router.put('/:id/follow', jwtHelper.verifyJwtToken, (req, res, next) => {
         return res.status(400).send(`No users with given id: ${req.params.id}`);
     }
 
-    User.update({_id: req._id}, {$push: {following: req.params.id}}, (err, doc) => {
+    User.updateOne({_id: req._id}, {$push: {following: req.params.id}}, (err, profileData) => {
         if (err) res.status(400).json(err);
 
-        User.update({_id: req.params.id}, {$push: {followers: req._id}}, (err, doc) => {
+        User.updateOne({_id: req.params.id}, {$push: {followers: req._id}}, (err, userData) => {
             if (err) {
                 return res.status(400).json(err);
             } else {
                 return res.status(200).json({
                     status: true,
-                    message: 'Follow success'
+                    message: 'Follow success',
+                    user: req._id
                 });
             }
 
@@ -107,16 +108,17 @@ router.put('/:id/unfollow', jwtHelper.verifyJwtToken, (req, res, next) => {
         return res.status(400).send(`No users with given id: ${req.params.id}`);
     }
 
-    User.update({_id: req._id}, {$pull: {following: req.params.id}}, (err, doc) => {
+    User.updateOne({_id: req._id}, {$pull: {following: req.params.id}}, (err, profileData) => {
         if (err) res.status(400).json(err);
 
-        User.update({_id: req.params.id}, {$pull: {followers: req._id}}, (err, doc) => {
+        User.updateOne({_id: req.params.id}, {$pull: {followers: req._id}}, (err, userData) => {
             if (err) {
                 return res.status(400).json(err);
             } else {
                 return res.status(200).json({
                     status: true,
-                    message: 'Unfollow success'
+                    message: 'Unfollow success',
+                    user: req._id
                 });
             }
         });
