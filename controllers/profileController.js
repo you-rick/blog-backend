@@ -13,7 +13,7 @@ let {User} = require('../models/user.model');
 
 router.post('/register', fileImageHandler.single('photo'), async (req, res, next) => {
     let photoURL = 'static/images/default-avatar.png';
-    let registerDate = new Date();
+    let registerDate = new Date().toISOString();
 
     req.fileValidationError && res.send({status: false, message: req.fileValidationError});
 
@@ -47,7 +47,7 @@ router.post('/register', fileImageHandler.single('photo'), async (req, res, next
         followers: [],
         saved: [],
         liked: [],
-        date: registerDate.toString()
+        date: registerDate
     });
 
     user.save((err, doc) => {

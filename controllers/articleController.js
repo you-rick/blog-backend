@@ -22,21 +22,26 @@ router.get('/', async (req, res) => {
     try {
         // execute query with page and limit values
         const articles = await Article.find(queryParam)
+            .sort({date: -1})
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .exec();
 
+
+
         // get total documents in the Posts collection
-        const count = await Article.countDocuments();
+        const count = await Article.countDocuments(queryParam);
 
         // return response with posts, total pages, and current page
         res.json({
             articles,
             status: true,
             totalPages: Math.ceil(count / limit),
+            totalArticles: count,
             currentPage: page
         });
     } catch (err) {
+        res.status(400).json({status: false, message: err.message});
         console.error(err.message);
     }
 });
@@ -45,10 +50,18 @@ router.get('/', async (req, res) => {
 router.get('/:slug', (req, response) => {
     Article.find({slug: req.params.slug}, (err, doc) => {
         if (!err) {
-            response.status(200).json({
-                status: true,
-                article: doc
-            });
+            if (!doc.length) {
+                response.status(400).json({
+                    status: false,
+                    message: `No article with given URL - ${req.params.slug}`
+                });
+            } else {
+                response.status(200).json({
+                    status: true,
+                    article: doc
+                });
+            }
+
         } else {
             response.json({message: err});
             console.log("Damn it! Error in Retrieving Article by ID :" + JSON.stringify(err, undefined, 2));
@@ -59,7 +72,7 @@ router.get('/:slug', (req, response) => {
 
 router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (req, response) => {
     let imageURL = '';
-    let postDate = new Date();
+    let postDate = new Date().toISOString();
     let slug = slugify(req.body.title, {lower: true, remove: /[*+~.()'"!:@?<>;=\/]/g});
     req.fileValidationError && response.send({status: false, message: req.fileValidationError});
 
@@ -105,7 +118,7 @@ router.post('/', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (re
 
 router.put('/:slug', jwtHelper.verifyJwtToken, fileImageHandler.single('image'), (req, response) => {
     let imageURL = '';
-    let editDate = new Date();
+    let editDate = new Date().toISOString();
     let slug = slugify(req.body.title, {lower: true, remove: /[*+~.()'"!:@?<>;=\/]/g});
     req.fileValidationError && response.send({status: false, message: req.fileValidationError});
 
@@ -153,7 +166,7 @@ router.put('/:slug', jwtHelper.verifyJwtToken, fileImageHandler.single('image'),
 
 router.delete('/:id', jwtHelper.verifyJwtToken, (req, response) => {
     if (!ObjectId.isValid(req.params.id)) {
-        return response.status(400).send(`No record with given id: ${req.params.id}`);
+        return response.status(400).send(`No article with given id: ${req.params.id}`);
     }
 
     Article.findOneAndDelete({_id: req.params.id, author: req._id}, (err, doc) => {
@@ -168,7 +181,7 @@ router.delete('/:id', jwtHelper.verifyJwtToken, (req, response) => {
 
 router.put('/:id/like', jwtHelper.verifyJwtToken, (req, res, next) => {
     if (!ObjectId.isValid(req.params.id)) {
-        return res.status(400).send(`No articles with given id: ${req.params.id}`);
+        return res.status(400).send(`No article with given id: ${req.params.id}`);
     }
 
     Article.updateOne({_id: req.params.id}, {$push: {liked: req._id}}, (err, articleData) => {
@@ -192,7 +205,7 @@ router.put('/:id/like', jwtHelper.verifyJwtToken, (req, res, next) => {
 
 router.put('/:id/unlike', jwtHelper.verifyJwtToken, (req, res, next) => {
     if (!ObjectId.isValid(req.params.id)) {
-        return res.status(400).send(`No articles with given id: ${req.params.id}`);
+        return res.status(400).send(`No article with given id: ${req.params.id}`);
     }
 
     Article.updateOne({_id: req.params.id}, {$pull: {liked: req._id}}, (err, articleData) => {
@@ -216,7 +229,7 @@ router.put('/:id/unlike', jwtHelper.verifyJwtToken, (req, res, next) => {
 
 router.put('/:id/save', jwtHelper.verifyJwtToken, (req, res, next) => {
     if (!ObjectId.isValid(req.params.id)) {
-        return res.status(400).send(`No articles with given id: ${req.params.id}`);
+        return res.status(400).send(`No article with given id: ${req.params.id}`);
     }
 
     Article.updateOne({_id: req.params.id}, {$push: {saved: req._id}}, (err, articleData) => {
@@ -240,7 +253,7 @@ router.put('/:id/save', jwtHelper.verifyJwtToken, (req, res, next) => {
 
 router.put('/:id/unsave', jwtHelper.verifyJwtToken, (req, res, next) => {
     if (!ObjectId.isValid(req.params.id)) {
-        return res.status(400).send(`No articles with given id: ${req.params.id}`);
+        return res.status(400).send(`No article with given id: ${req.params.id}`);
     }
 
     Article.updateOne({_id: req.params.id}, {$pull: {saved: req._id}}, (err, articleData) => {

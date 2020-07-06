@@ -49,7 +49,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', (req, res) => {
     if (!ObjectId.isValid(req.params.id)) {
-        return res.status(400).send(`No record with given id: ${req.params.id}`);
+        return res.status(400).json({message: `No user with given id: ${req.params.id}`});
     }
 
     User.findById(req.params.id, (err, doc) => {
@@ -77,7 +77,7 @@ router.get('/:id', (req, res) => {
 
 router.put('/:id/follow', jwtHelper.verifyJwtToken, (req, res, next) => {
     if (!ObjectId.isValid(req.params.id)) {
-        return res.status(400).send(`No users with given id: ${req.params.id}`);
+        return res.status(400).send(`No user with given id: ${req.params.id}`);
     }
 
     User.updateOne({_id: req._id}, {$push: {following: req.params.id}}, (err, profileData) => {
@@ -102,7 +102,7 @@ router.put('/:id/follow', jwtHelper.verifyJwtToken, (req, res, next) => {
 
 router.put('/:id/unfollow', jwtHelper.verifyJwtToken, (req, res, next) => {
     if (!ObjectId.isValid(req.params.id)) {
-        return res.status(400).send(`No users with given id: ${req.params.id}`);
+        return res.status(400).send(`No user with given id: ${req.params.id}`);
     }
 
     User.updateOne({_id: req._id}, {$pull: {following: req.params.id}}, (err, profileData) => {
