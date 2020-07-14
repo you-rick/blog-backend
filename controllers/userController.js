@@ -14,6 +14,7 @@ router.get('/', async (req, res) => {
     try {
         // execute query with page and limit values
         let users = await User.find()
+            .sort({'followersNumber': -1})
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .exec();
@@ -28,6 +29,7 @@ router.get('/', async (req, res) => {
                 'facebook',
                 'followers',
                 'following',
+                'followersNumber'
             ])
         });
 
@@ -69,7 +71,7 @@ router.get('/:id', (req, res) => {
             });
         } else {
             res.json({message: err});
-            console.log("Damn it! Error in Retrieving Users by ID :" + JSON.stringify(err, undefined, 2));
+            console.log('Damn it! Error in Retrieving Users by ID :' + JSON.stringify(err, undefined, 2));
         }
     });
 });
@@ -83,19 +85,22 @@ router.put('/:id/follow', jwtHelper.verifyJwtToken, (req, res, next) => {
     User.updateOne({_id: req._id}, {$push: {following: req.params.id}}, (err, profileData) => {
         if (err) res.status(400).json(err);
 
-        User.updateOne({_id: req.params.id}, {$push: {followers: req._id}}, (err, userData) => {
-            if (err) {
-                return res.status(400).json(err);
-            } else {
-                return res.status(200).json({
-                    status: true,
-                    message: 'Follow success',
-                    user: req._id
-                });
-            }
+        User.updateOne(
+            {_id: req.params.id},
+            {$push: {followers: req._id}, $inc: {'followersNumber': 1}},
+            (err, userData) => {
+                if (err) {
+                    return res.status(400).json(err);
+                } else {
+                    return res.status(200).json({
+                        status: true,
+                        message: 'Follow success',
+                        user: req._id
+                    });
+                }
 
 
-        });
+            });
     });
 });
 
@@ -108,7 +113,10 @@ router.put('/:id/unfollow', jwtHelper.verifyJwtToken, (req, res, next) => {
     User.updateOne({_id: req._id}, {$pull: {following: req.params.id}}, (err, profileData) => {
         if (err) res.status(400).json(err);
 
-        User.updateOne({_id: req.params.id}, {$pull: {followers: req._id}}, (err, userData) => {
+        User.updateOne(
+            {_id: req.params.id},
+            {$pull: {followers: req._id}, $inc: {'followersNumber': -1}},
+            (err, userData) => {
             if (err) {
                 return res.status(400).json(err);
             } else {

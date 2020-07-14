@@ -12,6 +12,7 @@ let articleSchema = new mongoose.Schema({
     liked: [{
         type: String
     }],
+    likesNumber: Number,
     saved: [{
         type: String
     }],

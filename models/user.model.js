@@ -29,6 +29,7 @@ let userSchema = new mongoose.Schema({
     followers:[{
         type: String
     }],
+    followersNumber: Number,
     liked: [{
         type: String
     }],

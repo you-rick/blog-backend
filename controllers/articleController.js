@@ -12,17 +12,19 @@ const {Article} = require('../models/article.model');
 const {User} = require('../models/user.model');
 
 router.get('/', async (req, res) => {
-    // destructure page and limit and set default values
-    const {page = 1, limit = 10,} = req.query;
+    const {page = 1, limit = 10} = req.query;
+    let filterParam = parseInt(req.query['best']) !== 1 ? {date: -1} : {'likesNumber': -1};
 
     let queryParam = {};
     if (req.query.author) queryParam = {author: req.query.author, ...queryParam};
     if (req.query.category) queryParam = {category: req.query.category, ...queryParam};
+    if (req.query.likedBy) queryParam = {liked: req.query.likedBy, ...queryParam};
+    if (req.query.savedBy) queryParam = {saved: req.query.savedBy, ...queryParam};
 
     try {
         // execute query with page and limit values
         const articles = await Article.find(queryParam)
-            .sort({date: -1})
+            .sort(filterParam)
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .exec();
@@ -184,7 +186,10 @@ router.put('/:id/like', jwtHelper.verifyJwtToken, (req, res, next) => {
         return res.status(400).send(`No article with given id: ${req.params.id}`);
     }
 
-    Article.updateOne({_id: req.params.id}, {$push: {liked: req._id}}, (err, articleData) => {
+    Article.updateOne(
+        {_id: req.params.id},
+        {$push: {liked: req._id}, $inc: {'likesNumber': 1}},
+        (err, articleData) => {
         if (err) res.status(400).json(err);
 
         User.updateOne({_id: req._id}, {$push: {liked: req.params.id}}, (err, userData) => {
@@ -208,7 +213,10 @@ router.put('/:id/unlike', jwtHelper.verifyJwtToken, (req, res, next) => {
         return res.status(400).send(`No article with given id: ${req.params.id}`);
     }
 
-    Article.updateOne({_id: req.params.id}, {$pull: {liked: req._id}}, (err, articleData) => {
+    Article.updateOne(
+        {_id: req.params.id},
+        {$pull: {liked: req._id}, $inc: {'likesNumber': -1}},
+        (err, articleData) => {
         if (err) res.status(400).json(err);
 
         User.updateOne({_id: req._id}, {$pull: {liked: req.params.id}}, (err, userData) => {
