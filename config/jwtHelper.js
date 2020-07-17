@@ -5,9 +5,6 @@ module.exports.verifyJwtToken = (req, res, next) => {
     let token;
 
     if ('authorization' in req.headers) {
-        // Используется так называемая auth схема - Bearer.
-        // Если токен есть - должна быть запись в хэдере - Authorization: Bearer [jwt]
-        // Внизу мы просто парсим эту строку и получаем сам токен
         token = req.headers['authorization'].split(' ')[1];
     }
 

@@ -30,7 +30,6 @@ router.get('/', async (req, res) => {
             .exec();
 
 
-
         // get total documents in the Posts collection
         const count = await Article.countDocuments(queryParam);
 
@@ -190,21 +189,21 @@ router.put('/:id/like', jwtHelper.verifyJwtToken, (req, res, next) => {
         {_id: req.params.id},
         {$push: {liked: req._id}, $inc: {'likesNumber': 1}},
         (err, articleData) => {
-        if (err) res.status(400).json(err);
+            if (err) res.status(400).json(err);
 
-        User.updateOne({_id: req._id}, {$push: {liked: req.params.id}}, (err, userData) => {
-            if (err) {
-                return res.status(400).json(err);
-            } else {
-                return res.status(200).json({
-                    status: true,
-                    message: 'Article saved in Favorites',
-                    article: articleData,
-                    user: req._id
-                });
-            }
+            User.updateOne({_id: req._id}, {$push: {liked: req.params.id}}, (err, userData) => {
+                if (err) {
+                    return res.status(400).json(err);
+                } else {
+                    return res.status(200).json({
+                        status: true,
+                        message: 'Article saved in Favorites',
+                        article: articleData,
+                        user: req._id
+                    });
+                }
+            });
         });
-    });
 });
 
 
@@ -217,21 +216,21 @@ router.put('/:id/unlike', jwtHelper.verifyJwtToken, (req, res, next) => {
         {_id: req.params.id},
         {$pull: {liked: req._id}, $inc: {'likesNumber': -1}},
         (err, articleData) => {
-        if (err) res.status(400).json(err);
+            if (err) res.status(400).json(err);
 
-        User.updateOne({_id: req._id}, {$pull: {liked: req.params.id}}, (err, userData) => {
-            if (err) {
-                return res.status(400).json(err);
-            } else {
-                return res.status(200).json({
-                    status: true,
-                    message: 'Article removed from Favorites',
-                    article: articleData,
-                    user: req._id
-                });
-            }
+            User.updateOne({_id: req._id}, {$pull: {liked: req.params.id}}, (err, userData) => {
+                if (err) {
+                    return res.status(400).json(err);
+                } else {
+                    return res.status(200).json({
+                        status: true,
+                        message: 'Article removed from Favorites',
+                        article: articleData,
+                        user: req._id
+                    });
+                }
+            });
         });
-    });
 });
 
 
